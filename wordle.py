@@ -28,27 +28,27 @@ def build_letter_dict(coords):
     rel_coords = (coords[0] + 60, coords[1])
     for l in 'zxcvbnm':
         letter_dict[l] = rel_coords
-        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 2)
+        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 3)
         rel_coords = (rel_coords[0] + 50, rel_coords[1])
 
     rel_coords = (rel_coords[0], rel_coords[1] - 65)
     for l in 'lkjhgfdsa':
         letter_dict[l] = rel_coords
-        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 2)
+        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 3)
         rel_coords = (rel_coords[0] - 50, rel_coords[1])
 
     rel_coords = (rel_coords[0] + 30, rel_coords[1] - 65)
     for l in 'qwertyuiop':
         letter_dict[l] = rel_coords
-        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 2)
+        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 3)
         rel_coords = (rel_coords[0] + 50, rel_coords[1])
 
-    vlog(letter_dict, 3)
+    vlog(letter_dict, 4)
     return letter_dict
 
 def click(pos):
     pyautogui.click(pos)
-    vlog('Left mouse button pressed at {}'.format(pos))
+    vlog('Left mouse button pressed at {}'.format(pos), 2)
 
 def enter_word(word, letter_dict):
     if not len(word) == 5:

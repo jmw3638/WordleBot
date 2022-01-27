@@ -4,6 +4,8 @@ import pyautogui
 import time
 from PIL import ImageGrab
 
+import util
+
 class Results(enum.Enum):
     INVALID = 0
     EMPTY = 1
@@ -30,55 +32,9 @@ def parse_args(parser):
 
     return parser.parse_args()
 
-def vlog(message, level=1):
-    if log_level >= level:
-        print(message, flush=True)
-
-def build_letter_dict(coords):
-    vlog('Enter button coords: {}'.format(coords))
-    letter_dict = {}
-
-    rel_coords = (coords[0] + 60, coords[1])
-    for l in 'zxcvbnm':
-        letter_dict[l] = rel_coords
-        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 3)
-        rel_coords = (rel_coords[0] + 50, rel_coords[1])
-
-    rel_coords = (rel_coords[0], rel_coords[1] - 65)
-    for l in 'lkjhgfdsa':
-        letter_dict[l] = rel_coords
-        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 3)
-        rel_coords = (rel_coords[0] - 50, rel_coords[1])
-
-    rel_coords = (rel_coords[0] + 30, rel_coords[1] - 65)
-    for l in 'qwertyuiop':
-        letter_dict[l] = rel_coords
-        vlog('Added \'{}\' to letter dict with coords {}'.format(l, rel_coords), 3)
-        rel_coords = (rel_coords[0] + 50, rel_coords[1])
-
-    vlog(letter_dict, 4)
-    return letter_dict
-
-def build_board_dict(coords):
-    vlog('Top left space coords: {}'.format(coords))
-    board_dict = {}
-
-    count = 0
-    rel_coords = (coords[0], coords[1])
-    for r in range(6):
-        for c in range(5):
-            board_dict[count] = rel_coords
-            vlog('Added \'{}\' to board dict with coords {}'.format(count, rel_coords), 3)
-            rel_coords = (rel_coords[0] + 67, rel_coords[1])
-            count += 1
-        rel_coords = (coords[0], rel_coords[1] + 67)
-
-    vlog(board_dict, 4)
-    return board_dict
-
 def click(pos):
     pyautogui.click(pos)
-    vlog('Left mouse button pressed at {}'.format(pos), 2)
+    util.vlog('Left mouse button pressed at {}'.format(pos), 2)
 
 def enter_word(word, letter_dict):
     if not len(word) == 5:
@@ -90,7 +46,7 @@ def enter_word(word, letter_dict):
             return False
 
     for letter in word:
-        vlog('Submitting letter: {}'.format(letter))
+        util.vlog('Submitting letter: {}'.format(letter))
         click(letter_dict[letter])
     return True
 
@@ -105,13 +61,13 @@ def get_result(color):
 
     if color in color_dict:
         return color_dict[color]
-    vlog('{} not in color dict'.format(color))
+    util.vlog('{} not in color dict'.format(color))
     return False
 
 def get_row_results(row, board_dict):
     results = []
     index = row * 5
-    vlog('Row {} results (index {}):'.format(row, index), 2)
+    util.vlog('Row {} results (index {}):'.format(row, index), 2)
 
     for i in range(index, index + 5):
         coords = board_dict[i]
@@ -123,9 +79,9 @@ def get_row_results(row, board_dict):
         r = get_result(color_avg[0][1])
         if r:
             results.append(r)
-            vlog('{} ({}): {}'.format(i, index + i, r), 2)
+            util.vlog('{} ({}): {}'.format(i, index + i, r), 2)
         else:
-            vlog('Row {} results failed'.format(row))
+            util.vlog('Row {} results failed'.format(row))
             return False
 
     return results
@@ -133,23 +89,22 @@ def get_row_results(row, board_dict):
 def main():
     args = parse_args(argparse.ArgumentParser())
 
-    global log_level
-    log_level = args.verbose
+    util.set_v_lvl(args.verbose)
 
-    vlog(args, 2)
+    util.vlog(args, 2)
 
     l_split_coords = args.letter_coords.split(',')
     l_coords = (int(l_split_coords[0]), int(l_split_coords[1]))
-    letter_dict = build_letter_dict(l_coords)
+    letter_dict = util.build_letter_dict(l_coords)
 
     b_split_coords = args.board_coords.split(',')
     b_coords = (int(b_split_coords[0]), int(b_split_coords[1]))
-    board_dict = build_board_dict(b_coords)
+    board_dict = util.build_board_dict(b_coords)
 
     # Sleep to allow user to open Worldle game
     # https://www.powerlanguage.co.uk/wordle/
     time.sleep(3)
-    vlog('Sleep complete, continuing program')
+    util.vlog('Sleep complete, continuing program')
 
     click(l_split_coords)
     time.sleep(0.5)

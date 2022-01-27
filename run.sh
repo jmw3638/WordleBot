@@ -35,19 +35,23 @@ if [ $3 ]; then
 fi
 echo 'mode:' $MODE
 
-COORDS=''
+LCOORDS=''
+BCOORDS=''
 case $MODE in
     1)
         # Laptop screen (3 monitors)
-        COORDS='-1170,990'
+        LCOORDS='-1170,990'
+        BCOORDS='-1115,343'
     ;;
     2)
         # Default screen
-        COORDS='750,990'
+        LCOORDS='750,990'
+        BCOORDS='805,345'
     ;;
     3)
         # Right screen (portrait)
-        COORDS='2250,980'
+        LCOORDS='2250,980'
+        BCOORDS='2305,85'
     ;;
     *)
         echo 'unhandled option'
@@ -55,7 +59,7 @@ case $MODE in
     ;;
 esac
 
-args="--coords=$COORDS"
+args="--letter-coords=$LCOORDS --board-coords=$BCOORDS"
 if ! [ $WORD == 0 ]; then
     args="$args --start=$WORD"
 fi

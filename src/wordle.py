@@ -58,11 +58,13 @@ def main():
     wordle_game.init_game()
     
     word = word_guesser.get_random_word()
-    print(word)
     if args.start:
         word = args.start
 
-    for i in range(6):
+    total_guesses = 6
+    for i in range(total_guesses):
+        print('Guess #{}: {}'.format(i + 1, word))
+
         if not wordle_game.enter_word(word):
             print('Error: failed to enter word \'{}\''.format(word))
             exit(1)
@@ -78,7 +80,7 @@ def main():
                 goal = False
                 break
         if goal:
-            print('Found word in {} guesses: {}'.format(i + 1, word))
+            print('Solved Wordle in {} guesses: {}'.format(i + 1, word))
             exit(0)
 
         if not word_guesser.read_in_results(word, results):
@@ -88,7 +90,7 @@ def main():
         words = word_guesser.get_possible_words()
         word = word_guesser.get_random_word(words)
 
-    print('Failed to guess word :(')
+    print('Failed to solve Wordle in {} guesses'.format(total_guesses))
 
 if __name__ == "__main__":
     main()

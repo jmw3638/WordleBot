@@ -80,7 +80,7 @@ def main():
                 goal = False
                 break
         if goal:
-            print('Solved Wordle in {} guesses: {}'.format(i + 1, word))
+            print('Solved Wordle in {} guesses'.format(i + 1))
             exit(0)
 
         if not word_guesser.read_in_results(word, results):

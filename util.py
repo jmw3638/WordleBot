@@ -19,6 +19,9 @@ def set_v_lvl(level:int):
     global log_level
     log_level = level
 
+def get_alphabet():
+    return 'abcdefghijklmnopqrstuvwxyz'
+
 def validate_coords(coords_str:str):
     coords_split = coords_str.split(',')
     if len(coords_split) != 2:

@@ -59,7 +59,7 @@ case $MODE in
     ;;
 esac
 
-args="--letter-coords=$LCOORDS --board-coords=$BCOORDS"
+args="--letter-coords=$LCOORDS --board-coords=$BCOORDS -d ./possible_words.txt"
 if ! [ $WORD == 0 ]; then
     args="$args --start=$WORD"
 fi

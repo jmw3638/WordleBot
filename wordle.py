@@ -1,7 +1,9 @@
 import argparse
-import util
+import os.path
 
 import browser
+import guesser
+import util
 
 def parse_args(parser):
     parser.add_argument('-v', '--verbose',
@@ -20,6 +22,10 @@ def parse_args(parser):
             help='screen coords of top left board space, format as \'-cx,y\' \'--board-coords=x,y\'',
             required=True)
 
+    parser.add_argument('-d', '--dictionary',
+            help='word dictionary file',
+            required=True)
+
     return parser.parse_args()
 
 def main():
@@ -28,6 +34,15 @@ def main():
     util.set_v_lvl(args.verbose)
 
     util.vlog(args, 2)
+
+    if not os.path.isfile(args.dictionary):
+        print('Error: no such file {}'.format(args.dictionary))
+        exit(1)
+    
+    dict_file = open(args.dictionary)
+    words_list = dict_file.read()
+
+    word_guesser = guesser.WordGuesser(words_list)
 
     enter_key_coords = util.validate_coords(args.letter_coords)
     if not enter_key_coords:
@@ -42,14 +57,38 @@ def main():
     wordle_game = browser.Browser(enter_key_coords, board_tl_coords)
     wordle_game.init_game()
     
-    starting_word = 'hello'
+    word = word_guesser.get_random_word()
+    print(word)
     if args.start:
-        starting_word = args.start
+        word = args.start
+
+    for i in range(6):
+        if not wordle_game.enter_word(word):
+            print('Error: failed to enter word \'{}\''.format(word))
+            exit(1)
         
-    if not wordle_game.enter_word(starting_word):
-        print('Error: failed to enter word \'{}\''.format(starting_word))
-    
-    print(wordle_game.submit_word())
+        results = wordle_game.submit_word()
+        if not results:
+            print('Error: failed to submit word \'{}\''.format(word))
+            exit(1)
+
+        goal = True
+        for r in results:
+            if not r is util.Results.RIGHT:
+                goal = False
+                break
+        if goal:
+            print('Found word in {} guesses: {}'.format(i + 1, word))
+            exit(0)
+
+        if not word_guesser.read_in_results(word, results):
+            print('Error: failed read results: {}'.format(results))
+            exit(1)
+
+        words = word_guesser.get_possible_words()
+        word = word_guesser.get_random_word(words)
+
+    print('Failed to guess word :(')
 
 if __name__ == "__main__":
     main()

@@ -1,12 +1,44 @@
-def vlog(message, level=1):
-    if log_level >= level:
-        print(message, flush=True)
 
-def set_v_lvl(level):
+from enum import Enum
+
+class Results(Enum):
+    INVALID = 0
+    EMPTY = 1
+    RIGHT = 2
+    PARTIAL = 3
+    WRONG = 4
+
+def vlog(message:str, level:int=1):
+    try:
+        if log_level >= level:
+            print(message, flush=True)
+    except:
+        return
+
+def set_v_lvl(level:int):
     global log_level
     log_level = level
 
-def build_letter_dict(coords):
+def validate_coords(coords_str:str):
+    coords_split = coords_str.split(',')
+    if len(coords_split) != 2:
+        vlog('Invalid coords: {}'.format(coords_str))
+        return False
+
+    x = coords_split[0]
+    y = coords_split[1]
+
+    if not x.isnumeric():
+        vlog('Invalid x coord: {}'.format(x))
+        return False
+    if not y.isnumeric():
+        vlog('Invalid y coord: {}'.format(y))
+        return False
+
+    coords = (int(x), int(y))
+    return coords
+
+def build_letter_dict(coords:tuple):
     vlog('Enter button coords: {}'.format(coords))
     letter_dict = {}
 
@@ -31,7 +63,7 @@ def build_letter_dict(coords):
     vlog(letter_dict, 4)
     return letter_dict
 
-def build_board_dict(coords):
+def build_board_dict(coords:tuple):
     vlog('Top left space coords: {}'.format(coords))
     board_dict = {}
 

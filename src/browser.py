@@ -2,7 +2,47 @@ import pyautogui
 import time
 from PIL import ImageGrab
 
+import guesser
 import util
+
+def run_browser_bot(word_guesser:guesser.WordGuesser, start_word:str, enter_key_coords:tuple, board_tl_coords:tuple):
+    wordle_game = Browser(enter_key_coords, board_tl_coords)
+    wordle_game.init_game()
+    
+    guess = word_guesser.get_random_word()
+    if start_word:
+        guess = start_word
+
+    total_guesses = 6
+    for i in range(total_guesses):
+        print('Guess #{}: {}'.format(i + 1, guess))
+
+        if not wordle_game.enter_word(guess):
+            print('Error: failed to enter word \'{}\''.format(guess))
+            exit(1)
+        
+        results = wordle_game.submit_word()
+        if not results:
+            print('Error: failed to submit word \'{}\''.format(guess))
+            exit(1)
+
+        solved = True
+        for r in results:
+            if not r is util.Results.RIGHT:
+                solved = False
+                break
+        if solved:
+            print('Solved Wordle in {} guesses'.format(i + 1))
+            exit(0)
+
+        if not word_guesser.read_in_results(guess, results):
+            print('Error: failed read results: {}'.format(results))
+            exit(1)
+
+        words = word_guesser.get_possible_words()
+        guess = word_guesser.get_random_word(words)
+
+    print('Failed to solve Wordle in {} guesses'.format(total_guesses))
 
 class Browser:
     def __init__(self, enter_key_coords:tuple, board_tl_coords:tuple):

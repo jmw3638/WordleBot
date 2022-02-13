@@ -3,94 +3,162 @@ import os.path
 
 import browser
 import guesser
+import simulate
 import util
 
 def parse_args(parser):
     parser.add_argument('-v', '--verbose',
-            help='use verbose logging',
-            action='count',
-            default=0)
+        help='use verbose logging',
+        action='count',
+        default=0)
 
-    parser.add_argument('-s', '--start',
-            help='choose a word to start the puzzle with')
-
-    parser.add_argument('-l', '--letter-coords',
-            help='screen coords of center of \'enter\' button, format as \'-cx,y\' \'--letter-coords=x,y\'',
-            required=True)
-    
-    parser.add_argument('-b', '--board-coords',
-            help='screen coords of top left board space, format as \'-cx,y\' \'--board-coords=x,y\'',
-            required=True)
+    # Main argument parser
 
     parser.add_argument('-d', '--dictionary',
             help='word dictionary file',
             required=True)
 
+    parser.add_argument('-w', '--allowed-words',
+            help='allowed words dictionary file')
+
+    subparsers = parser.add_subparsers(dest='operation', required=True)
+
+    # Wordle browser bot subparser
+
+    bot_parser = subparsers.add_parser('bot',
+            help='run Wordle browser bot')
+
+    bot_parser.add_argument('-l', '--letter-coords',
+            help='screen coords of center of \'enter\' button, format as \'-cx,y\' \'--letter-coords=x,y\'',
+            required=True)
+    
+    bot_parser.add_argument('-b', '--board-coords',
+            help='screen coords of top left board space, format as \'-cx,y\' \'--board-coords=x,y\'',
+            required=True)
+
+    bot_parser.add_argument('-s', '--start',
+            help='choose a word to start the puzzle with',
+            type=str,
+            default=None)
+
+    # Wordle Simulation subparser
+
+    sim_parser = subparsers.add_parser('sim',
+            help='run Wordle simulation')
+
+    sim_parser.add_argument('-i', '--iterations',
+            help='number of Wordle games to run',
+            type=int,
+            default=1)
+    
+    sim_parser.add_argument('-f', '--first',
+            help='run simulation with the same first guess each iteration',
+            type=str,
+            default=None)
+
+    sim_parser.add_argument('-g', '--goal',
+            help='run simulation with same goal word each iteration',
+            type=str,
+            default=None)
+
     return parser.parse_args()
 
-def main():
-    args = parse_args(argparse.ArgumentParser())
+def browser_bot(args:argparse.Namespace, words_list:str):
+    # Get initial guess, if not specified choose randomly from word dictionary
+    start_word = None
+    if args.start:
+        if len(args.start) != 5:
+            print('Error: invalid word length of 5 \'{}\''.format(args.start))
+            exit(1)
+        elif not util.validate_word(args.start):
+            print('Error: invalid word \'{}\''.format(args.start))
+            exit(1)
+        start_word = args.start
+        util.vlog('Using set starting word: {}'.format(start_word))
 
-    util.set_v_lvl(args.verbose)
-
-    util.vlog(args, 2)
-
-    if not os.path.isfile(args.dictionary):
-        print('Error: no such file {}'.format(args.dictionary))
-        exit(1)
-    
-    dict_file = open(args.dictionary)
-    words_list = dict_file.read()
-
-    word_guesser = guesser.WordGuesser(words_list)
-
+    # Get coords of enter key on webpage
     enter_key_coords = util.validate_coords(args.letter_coords)
     if not enter_key_coords:
         print('Error: invalid enter key coords \'{}\''.format(args.letter_coords))
         exit(1)
 
+    # Get coords of top left board space on webpage
     board_tl_coords = util.validate_coords(args.board_coords)
     if not board_tl_coords:
         print('Error: invalid board (top left) coords \'{}\''.format(args.board_coords))
         exit(1)
 
-    wordle_game = browser.Browser(enter_key_coords, board_tl_coords)
-    wordle_game.init_game()
-    
-    word = word_guesser.get_random_word()
-    if args.start:
-        word = args.start
+    # Create word guesser object and run bot
+    word_guesser = guesser.WordGuesser(words_list)
+    browser.run_browser_bot(word_guesser, start_word, enter_key_coords, board_tl_coords)
 
-    total_guesses = 6
-    for i in range(total_guesses):
-        print('Guess #{}: {}'.format(i + 1, word))
-
-        if not wordle_game.enter_word(word):
-            print('Error: failed to enter word \'{}\''.format(word))
+def simulation(args:argparse.Namespace, words_list:str, allowed_words:list=None):
+    # Get initial guess, randomized if not specified
+    start_word = None
+    if args.first:
+        if len(args.first) != 5:
+            print('Error: invalid word length of {} \'{}\''.format(len(args.first), args.first))
             exit(1)
-        
-        results = wordle_game.submit_word()
-        if not results:
-            print('Error: failed to submit word \'{}\''.format(word))
+        elif not util.validate_word(args.first):
+            print('Error: invalid word \'{}\''.format(args.first))
             exit(1)
+        start_word = args.first
+        util.vlog('Using persistent starting word: {}'.format(start_word))
 
-        goal = True
-        for r in results:
-            if not r is util.Results.RIGHT:
-                goal = False
-                break
-        if goal:
-            print('Solved Wordle in {} guesses'.format(i + 1))
-            exit(0)
-
-        if not word_guesser.read_in_results(word, results):
-            print('Error: failed read results: {}'.format(results))
+    # Get goal word, randomized if not specified
+    goal_word = None
+    if args.goal:
+        if len(args.goal) != 5:
+            print('Error: invalid word length of 5 \'{}\''.format(args.goal))
             exit(1)
+        elif not util.validate_word(args.goal):
+            print('Error: invalid word \'{}\''.format(args.goal))
+            exit(1)
+        goal_word = args.goal
+        util.vlog('Using persistent goal word: {}'.format(goal_word))
 
-        words = word_guesser.get_possible_words()
-        word = word_guesser.get_random_word(words)
+    # Create word guesser and simulation objects
+    word_guesser = guesser.WordGuesser(words_list)
+    sim = simulate.Simulation(word_guesser)
 
-    print('Failed to solve Wordle in {} guesses'.format(total_guesses))
+    # Run simulation and print results
+    results = sim.run_simulation(args.iterations, start_word, goal_word, allowed_words)
+    sim.print_results(results)
+
+def main():
+    args = parse_args(argparse.ArgumentParser())
+
+    util.set_v_lvl(args.verbose)
+    util.vlog(args, 3)
+
+    # Get word dictionary
+    if not os.path.isfile(args.dictionary):
+        print('Error: no such file {}'.format(args.dictionary))
+        exit(1)
+    dict_file = open(args.dictionary)
+    words_list = dict_file.read()
+
+    # Optional allowed words dictionary
+    allowed_words_list = None
+    if args.allowed_words:
+        if not os.path.isfile(args.allowed_words):
+            print('Error: no such file {}'.format(args.allowed_words))
+            exit(1)
+        allowed_file = open(args.allowed_words)
+        allowed_words_list = allowed_file.read().split()
+
+    # Wordle browser bot operation
+    if args.operation == 'bot':
+        print('Wordle Browser Bot')
+        print('https://www.powerlanguage.co.uk/wordle/')
+        browser_bot(args, words_list)
+    # Wordle simulation operation
+    elif args.operation == 'sim':
+        print('Wordle Simulation')
+        simulation(args, words_list, allowed_words_list)
+    # Invalid operation
+    else:
+        print('Error: invalid or no operation selected')
 
 if __name__ == "__main__":
     main()

@@ -8,19 +8,69 @@ class Results(Enum):
     PARTIAL = 3
     WRONG = 4
 
-def vlog(message:str, level:int=1):
+def vlog(message:str=None, level:int=1):
     try:
-        if log_level >= level:
+        if message is None:
+            return log_level
+        elif log_level >= level:
             print(message, flush=True)
     except:
-        return
+        return None
 
 def set_v_lvl(level:int):
     global log_level
     log_level = level
 
+def get_wordle_results(guess_word:str, goal_word:str):
+    if len(guess_word) != len(goal_word):
+        vlog('Word size mismatch: {}, {}'.format(guess_word, goal_word))
+        return False
+
+    guess_word = guess_word.lower()
+    goal_word = goal_word.lower()
+
+    vlog('{} <-> {}'.format(guess_word, goal_word), 5)
+
+    results = []
+    index = 0
+    for l in guess_word.lower():
+        result = Results.INVALID
+
+        if l == goal_word[index]:
+            result = Results.RIGHT
+        elif l in goal_word:
+            result = Results.PARTIAL
+        else:
+            result = Results.WRONG
+
+        vlog('{} | {} | {}'.format(l, goal_word[index], result), 5)
+        results.append(result)
+        index += 1
+
+    return results
+
 def get_alphabet():
     return 'abcdefghijklmnopqrstuvwxyz'
+
+def validate_word(word:str):
+    for l in word:
+        if not validate_letter(l):
+            vlog('Invalid letter in word: {}'.format(word))
+            return False
+    return True
+
+def validate_letter(letter:str):
+    # Check string size, must be 1
+    if len(letter) != 1:
+        vlog('Not a single letter: {}'.format(letter))
+        return False
+
+    # Check if character is valid letter
+    if letter not in get_alphabet():
+        vlog('Not a valid letter: {}'.format(letter))
+        return False
+
+    return True
 
 def validate_coords(coords_str:str):
     coords_split = coords_str.split(',')

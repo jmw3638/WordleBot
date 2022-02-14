@@ -1,3 +1,5 @@
+import time
+
 import guesser
 import util
 
@@ -5,15 +7,15 @@ class Simulation:
     def __init__(self, word_guesser:guesser.WordGuesser):
         self.word_guesser = word_guesser
 
-    def run_simulation(self, iterations:int, guess:str=None, goal:str=None, words_dict:list=None):
+    def run_simulation(self, iterations:int, guess:str=None, goal:str=None, words_dict:list=None, guesses_allowed:int=6):
         # Initialize simulation results
         stats = []
-        guesses_allowed = 6
         guess_distribution = [0] * guesses_allowed
-        words_distribution = [[0, 0]] * guesses_allowed
+        words_distribution = [(0, 0)] * guesses_allowed
         total_games = 0
         total_guesses = 0
         total_won = 0
+        start_time = time.time()
 
         # Play x iterations of Wordle games, where x is provided
         for i in range(iterations):
@@ -39,7 +41,7 @@ class Simulation:
 
             # Play a full game of Wordle
             for j in range(guesses_allowed):
-                util.vlog('Guess #{}: {}'.format(j + 1, cur_guess), 3)
+                util.vlog('Guess #{}: {}'.format(j + 1, cur_guess), 2)
 
                 # Get guess results
                 results = util.get_wordle_results(cur_guess, cur_goal)
@@ -67,9 +69,8 @@ class Simulation:
                 words = self.word_guesser.get_possible_words()
                 cur_guess = self.word_guesser.get_random_word(words)
 
-                words_distribution[j][0] += 1
-                words_distribution[j][1] += len(words)
-                print(words_distribution)
+                guess_number_count, total_possible = words_distribution[j]
+                words_distribution[j] = (guess_number_count + 1, total_possible + len(words))
 
             # Update simulation results
             self.word_guesser.reset_game_state()
@@ -82,24 +83,29 @@ class Simulation:
                 self.print_progress(total_games, iterations)
 
         # Calculate simulation statistics
+        stop_time = time.time()
+        total_time = '{0:.2f}'.format(stop_time - start_time)
         avg_guesses = total_guesses / iterations
         total_lost = total_games - total_won
         win_percent = '{0:.2f}'.format(100 * (total_won / total_games))
 
         # Build simulation results set
-        stats.append(('Total games: {}'.format(total_games)))
-        stats.append(('Total guesses: {}'.format(total_guesses)))
-        stats.append(('Average guesses per game: {}'.format(avg_guesses)))
-        stats.append(('Win/Loss Ratio: {} / {}'.format(total_won, total_lost)))
-        stats.append(('Win percentage: {}%'.format(win_percent)))
-        stats.append(('Guess distribution:'))
+        stats.append('Simulation Duration: {}s'.format(total_time))
+        stats.append('Total Games: {}'.format(total_games))
+        stats.append('Total Guesses: {}'.format(total_guesses))
+        stats.append('Average Guesses per Game: {}'.format(avg_guesses))
+        stats.append('Win/Loss Ratio: {} / {}'.format(total_won, total_lost))
+        stats.append('Win Percentage: {}%'.format(win_percent))
+        stats.append('Guess Distribution:')
         for i in range(len(guess_distribution)):
             guess_percentage = '{0:.2f}'.format(100 * (guess_distribution[i] / total_guesses))
-            stats.append(('Guess #{}: {} - {}%'.format(i + 1, guess_distribution[i], guess_percentage)))
-        stats.append(('Possible words from guess results distribution'))
+            stats.append('Guess #{}: {} - {}%'.format(i + 1, guess_distribution[i], guess_percentage))
+        stats.append('Average Possible Words per Guess Results:')
         for i in range(len(words_distribution)):
-            words_avg = words_distribution[i][1] / words_distribution[i][0]
-            stats.append(('Guess #{}: {}'.format(i + 1, words_avg)))
+            guess_number_count, total_possible = words_distribution[i]
+            if total_possible > 0:
+                words_avg = '{0:.2f}'.format(total_possible / guess_number_count)
+                stats.append('Guess #{}: {}'.format(i + 1, words_avg))
 
         return stats
 

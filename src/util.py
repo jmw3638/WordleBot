@@ -98,19 +98,19 @@ def build_letter_dict(coords:tuple):
     rel_coords = (coords[0] + 60, coords[1])
     for l in 'zxcvbnm':
         letter_dict[l] = rel_coords
-        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 3)
+        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 5)
         rel_coords = (rel_coords[0] + 50, rel_coords[1])
 
     rel_coords = (rel_coords[0], rel_coords[1] - 65)
     for l in 'lkjhgfdsa':
         letter_dict[l] = rel_coords
-        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 3)
+        vlog('Added \'{}\' to dict with coords {}'.format(l, rel_coords), 5)
         rel_coords = (rel_coords[0] - 50, rel_coords[1])
 
     rel_coords = (rel_coords[0] + 30, rel_coords[1] - 65)
     for l in 'qwertyuiop':
         letter_dict[l] = rel_coords
-        vlog('Added \'{}\' to letter dict with coords {}'.format(l, rel_coords), 3)
+        vlog('Added \'{}\' to letter dict with coords {}'.format(l, rel_coords), 5)
         rel_coords = (rel_coords[0] + 50, rel_coords[1])
 
     vlog(letter_dict, 4)
@@ -125,7 +125,7 @@ def build_board_dict(coords:tuple):
     for r in range(6):
         for c in range(5):
             board_dict[count] = rel_coords
-            vlog('Added \'{}\' to board dict with coords {}'.format(count, rel_coords), 3)
+            vlog('Added \'{}\' to board dict with coords {}'.format(count, rel_coords), 5)
             rel_coords = (rel_coords[0] + 67, rel_coords[1])
             count += 1
         rel_coords = (coords[0], rel_coords[1] + 67)

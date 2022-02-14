@@ -93,9 +93,11 @@ class WordGuesser:
             return False
 
         # Loop through each letter, result pair
+        observed = []
         i = 0 
         for r in results:
             letter = word[i]
+            observed.append(letter)
             util.vlog('{}: {}'.format(letter, r), 4)
 
             # Add letter to appropriate set
@@ -170,7 +172,8 @@ class WordGuesser:
                        valid = False
                 if valid:
                     possible_words.append(word)
-            util.vlog('Refined Matches ({}): {}'.format(len(possible_words), possible_words), 4)
+            util.vlog('Possible Words: {}'.format(len(possible_words)), 3)
+            util.vlog(possible_words, 4)
 
             return possible_words
         else:

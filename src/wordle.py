@@ -6,27 +6,29 @@ import guesser
 import simulate
 import util
 
-def parse_args(parser):
+def parse_args(parser:argparse.ArgumentParser):
+    subparsers = parser.add_subparsers(dest='operation')
+
+    bot_parser = subparsers.add_parser('bot',
+            help='run Wordle browser bot')
+
+    sim_parser = subparsers.add_parser('sim',
+            help='run Wordle simulation')
+
+    # General argument parser arguments
+
+    parser.add_argument('dictionary',
+            help='word dictionary file')
+
+    parser.add_argument('-w', '--allowed-words',
+            help='allowed words dictionary file')
+
     parser.add_argument('-v', '--verbose',
         help='use verbose logging',
         action='count',
         default=0)
 
-    # Main argument parser
-
-    parser.add_argument('-d', '--dictionary',
-            help='word dictionary file',
-            required=True)
-
-    parser.add_argument('-w', '--allowed-words',
-            help='allowed words dictionary file')
-
-    subparsers = parser.add_subparsers(dest='operation', required=True)
-
-    # Wordle browser bot subparser
-
-    bot_parser = subparsers.add_parser('bot',
-            help='run Wordle browser bot')
+    # Wordle browser bot subparser arguments
 
     bot_parser.add_argument('-l', '--letter-coords',
             help='screen coords of center of \'enter\' button, format as \'-cx,y\' \'--letter-coords=x,y\'',
@@ -41,10 +43,7 @@ def parse_args(parser):
             type=str,
             default=None)
 
-    # Wordle Simulation subparser
-
-    sim_parser = subparsers.add_parser('sim',
-            help='run Wordle simulation')
+    # Wordle Simulation subparser arguments
 
     sim_parser.add_argument('-i', '--iterations',
             help='number of Wordle games to run',

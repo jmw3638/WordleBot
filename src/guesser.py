@@ -4,70 +4,17 @@ import re
 import util
 
 class WordGuesser:
-    def __init__(self, words_list:str):
+    def __init__(self, words_list:str, word_length:int):
         self.words_list = words_list
-        self.right_set = ['', '', '', '', '']
-        self.partial_set = ['', '', '', '', '']
-        self.wrong_set = ''
-
-    def add_right(self, letter:str, position:int):
-        if not util.validate_letter(letter):
-            return False
-
-        # Validate letter position
-        if position < 0 or position >= len(self.partial_set):
-            util.vlog('Invalid position: {}'.format(position))
-            return False
-
-        # Check if letter is already at position
-        if self.right_set[position] == letter:
-            util.vlog('Letter \'{}\' already in right set at position {}'.format(letter, position), 5)
-            return True
-    
-        # Check for existing correct letter at position
-        if self.right_set[position] != '':
-            util.vlog('Failed to add \'{}\' to right set, position {} contains \'{}\''.format(letter, position, self.right_set[position]))
-            return False
-
-        util.vlog('Adding \'{}\' to right set (position: {})'.format(letter, position), 5)
-        self.right_set[position] = letter
-        return True
-
-    def add_partial(self, letter:str, position:int):
-        if not util.validate_letter(letter):
-            return False
-        
-        # Validate letter position
-        if position < 0 or position >= len(self.partial_set):
-            util.vlog('Invalid position: {}'.format(position))
-            return False
-        
-        # Check if letter already in partial subset
-        if letter in self.partial_set[position]:
-            util.vlog('Letter \'{}\' already in partial set at position {}'.format(letter, position), 5)
-            return True
-    
-        util.vlog('Adding \'{}\' to partial set (position: {})'.format(letter, position), 5)
-        self.partial_set[position] += letter
-        return True
-    
-    def add_wrong(self, letter:str):
-        if not util.validate_letter(letter):
-            return False
-
-        # Check if letter already in wrong set
-        if letter in self.wrong_set:
-            util.vlog('Letter \'{}\' already in wrong set'.format(letter), 5)
-            return True
-
-        util.vlog('Adding \'{}\' to wrong set'.format(letter), 5)
-        self.wrong_set += letter
-        return True
+        self.word_length = word_length
+        self.right_set = WordSet(word_length, False)
+        self.partial_set = WordSet(word_length, True)
+        self.wrong_set = WordSet(word_length, True)
 
     def reset_game_state(self):
-        self.right_set = ['', '', '', '', '']
-        self.partial_set = ['', '', '', '', '']
-        self.wrong_set = ''
+        self.right_set.clear_set()
+        self.partial_set.clear_set()
+        self.wrong_set.clear_set()
         util.vlog('Reset word guesser game state', 3)
 
     def get_random_word(self, word_list:list=[]):
@@ -102,19 +49,18 @@ class WordGuesser:
 
             # Add letter to appropriate set
             if r is util.Results.WRONG:
-                if letter not in self.partial_set:
-                    self.add_wrong(letter) 
+                if not self.partial_set.letter_in_set(letter):
+                    self.wrong_set.add_letter(letter, i)
             elif r is util.Results.RIGHT:
-                self.add_right(letter, i)
+                self.right_set.add_letter(letter, i)
             elif r is util.Results.PARTIAL:
-                self.add_partial(letter, i)
+                self.partial_set.add_letter(letter, i)
             else:
                 util.vlog('Invalid result: {}'.format(r))
                 return False
             i += 1
 
         return True
-
     
     def get_possible_words(self):
         util.vlog('Getting possible words from current result state', 3)
@@ -124,9 +70,10 @@ class WordGuesser:
 
         # Build regular expression from result sets
         final_reg_exp = '^'
-        for i in range(len(self.right_set)):
-            right_l = self.right_set[i]
-            partial_l = self.partial_set[i]
+        for i in range(self.word_length):
+            right_l = self.right_set.get_pos_letters(i)
+            partial_l = self.partial_set.get_pos_letters(i)
+            wrong_l = self.wrong_set.get_pos_letters(i)
 
             # Set correctly guessed letter for current position
             if right_l != '':
@@ -136,14 +83,14 @@ class WordGuesser:
             elif partial_l != '':
                 util.vlog('Letters \'{}\' in partial set at {}'.format(partial_l, i), 6)
                 reg_exp = '[^'
-                reg_exp += self.partial_set[i]
-                reg_exp += self.wrong_set
+                reg_exp += partial_l
+                reg_exp += wrong_l
                 reg_exp += ']'
             # Remove letters not in word for current position
             else:
                 util.vlog('No info for position {}'.format(i), 6)
                 reg_exp = '[^'
-                reg_exp += self.wrong_set
+                reg_exp += wrong_l
                 reg_exp += ']'
 
             util.vlog('Regex: \'{}\''.format(reg_exp), 5)
@@ -158,9 +105,7 @@ class WordGuesser:
             util.vlog('Matches ({}): {}'.format(len(match), match), 6)
 
             # Get all partial letters (in word, wrong position)
-            partials = ''
-            for p in self.partial_set:
-                partials += p
+            partials = self.partial_set.get_all_letters()
             util.vlog('Partial letters: {}'.format(partials), 6)
 
             # Refine search by factoring in partial letters
@@ -180,3 +125,64 @@ class WordGuesser:
             util.vlog('No matches found from current result state')
 
         return []
+
+class WordSet:
+    def __init__(self, word_length:int, multiple:bool):
+        self.word_length = word_length
+        self.letters = [''] * word_length
+        self.multiple = multiple
+
+    def add_letter(self, letter:str, position:int):
+        if not util.validate_letter(letter):
+            return False
+
+        # Validate letter position
+        if position < 0 or position >= self.word_length:
+            util.vlog('Invalid position: {}'.format(position))
+            return False
+
+        # Check if letter is already at position
+        if self.multiple and letter in self.letters[position]:
+            util.vlog('Letter \'{}\' already in word set at position {}'.format(letter, position), 5)
+            return True
+    
+        # Check for existing correct letter at position
+        if not self.multiple and self.letters[position] != '':
+            util.vlog('Failed to add \'{}\' to word set, position {} contains \'{}\''.format(letter, position, self.letters[position]), 5)
+            return False
+
+        util.vlog('Adding \'{}\' to word set (position: {})'.format(letter, position), 5)
+        self.letters[position] += letter
+        return True
+
+    def get_all_letters(self):
+        letters = ''
+        for i in range(len(self.letters)):
+            letters += self.get_pos_letters(i)
+        return letters
+
+    def get_pos_letters(self, position:int):
+        if position < 0 or position > len(self.letters):
+            util.vlog('Invalid position {} for word set of length {}'.format(position, len(self.letters)))
+            return False
+        return self.letters[position]
+
+    def letter_in_set(self, letter:str):
+        contains = False
+        for i in range(len(self.letters)):
+            if self.letter_at_position(letter, i):
+                util.vlog('Letter \'{}\' in word set at position {}'.format(letter, i))
+                contains = True
+        return contains
+
+    def letter_at_position(self, letter:str, position:int):
+        if position < 0 or position > len(self.letters):
+            util.vlog('Invalid position {} for word set of length {}'.format(position, len(self.letters)))
+            return False
+        return letter in self.letters[position]
+
+    def clear_set(self):
+        self.letters = [''] * self.word_length
+
+    def __str__(self):
+        return str(self.letters)

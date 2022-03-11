@@ -59,13 +59,14 @@ case $MODE in
     ;;
 esac
 
-args="-d ./res/possible_words.txt bot --letter-coords=$LCOORDS --board-coords=$BCOORDS"
+args="bot --letter-coords=$LCOORDS --board-coords=$BCOORDS"
 if ! [ $WORD == 0 ]; then
     args="$args --start=$WORD"
 fi
 if ! [ $LOG == 0 ]; then
     args="-$LOG $args"
 fi
+args="$args ./res/possible_words.txt"
 echo $args
 
 python src/wordle.py $args

@@ -88,7 +88,7 @@ def browser_bot(args:argparse.Namespace, words_list:str):
         exit(1)
 
     # Create word guesser object and run bot
-    word_guesser = guesser.WordGuesser(words_list)
+    word_guesser = guesser.WordGuesser(words_list, 5)
     browser.run_browser_bot(word_guesser, start_word, enter_key_coords, board_tl_coords)
 
 def simulation(args:argparse.Namespace, words_list:str, allowed_words:list=None):
@@ -117,7 +117,7 @@ def simulation(args:argparse.Namespace, words_list:str, allowed_words:list=None)
         util.vlog('Using persistent goal word: {}'.format(goal_word))
 
     # Create word guesser and simulation objects
-    word_guesser = guesser.WordGuesser(words_list)
+    word_guesser = guesser.WordGuesser(words_list, 5)
     sim = simulate.Simulation(word_guesser)
 
     # Run simulation and print results

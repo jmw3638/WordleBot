@@ -4,7 +4,6 @@ import simulate
 import wordle
 import util
 
-
 def main():
     print('Testing Wordle Program...')
     util.set_v_lvl(10)

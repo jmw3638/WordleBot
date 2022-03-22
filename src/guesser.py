@@ -73,7 +73,7 @@ class WordGuesser:
         for i in range(self.word_length):
             right_l = self.right_set.get_pos_letters(i)
             partial_l = self.partial_set.get_pos_letters(i)
-            wrong_l = self.wrong_set.get_pos_letters(i)
+            wrong_l = self.wrong_set.get_all_letters()
 
             # Set correctly guessed letter for current position
             if right_l != '':

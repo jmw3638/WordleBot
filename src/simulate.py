@@ -90,8 +90,8 @@ class Simulation:
             # Update simulation results
             self.word_guesser.reset_game_state()
             total_games += 1
-            total_guesses += j + 1
-            guess_distribution[j] += j + 1
+            total_guesses += 1
+            guess_distribution[j] += 1
 
             # Print a progress bar if not verbose logging
             if not util.vlog():

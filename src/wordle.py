@@ -39,14 +39,14 @@ def parse_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
     bot_parser.add_argument(
         "-l",
         "--letter-coords",
-        help="screen coords of center of 'enter' button, format as '-cx,y' '--letter-coords=x,y'",
+        help="screen coords of center of 'enter' button, format as '-cx,y' or '--letter-coords=x,y'",
         required=True,
     )
 
     bot_parser.add_argument(
         "-b",
         "--board-coords",
-        help="screen coords of top left board space, format as '-cx,y' '--board-coords=x,y'",
+        help="screen coords of top left board space, format as '-cx,y' or '--board-coords=x,y'",
         required=True,
     )
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-MODE=2
+MODE=1
 LOG=0
 WORD=0
 mode_re='^[0-9]+$'
@@ -39,16 +39,11 @@ LCOORDS=''
 BCOORDS=''
 case $MODE in
     1)
-        # Laptop screen (3 monitors)
-        LCOORDS='-1170,990'
-        BCOORDS='-1115,343'
-    ;;
-    2)
         # Default screen
         LCOORDS='750,990'
         BCOORDS='805,345'
     ;;
-    3)
+    2)
         # Right screen (portrait)
         LCOORDS='2250,980'
         BCOORDS='2305,85'

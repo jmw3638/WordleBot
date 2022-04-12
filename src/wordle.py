@@ -58,6 +58,14 @@ def parse_args(parser: argparse.ArgumentParser) -> argparse.Namespace:
         default=None,
     )
 
+    bot_parser.add_argument(
+        "-d",
+        "--delay",
+        help="delay in seconds between script execution and bot start up",
+        type=int,
+        default=3,
+    )
+
     # Wordle Simulation subparser arguments
 
     sim_parser.add_argument(
@@ -128,7 +136,7 @@ def browser_bot(args: argparse.Namespace, words_list: str) -> bool:
     # Create word guesser object and run bot
     word_guesser = guesser.WordGuesser(words_list, 5)
     browser.run_browser_bot(
-        word_guesser, start_word, enter_key_coords, board_tl_coords
+        word_guesser, start_word, enter_key_coords, board_tl_coords, args.delay
     )
     return True
 

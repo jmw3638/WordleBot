@@ -62,6 +62,8 @@ options:
                         '-cx,y' or '--board-coords=x,y'
   -s START, --start START
                         choose a word to start the puzzle with
+  -d DELAY, --delay DELAY
+                        delay in seconds between script execution and bot start up
 ```
 
 #### Run Script

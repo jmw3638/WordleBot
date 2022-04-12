@@ -12,9 +12,10 @@ def run_browser_bot(
     start_word: str,
     enter_key_coords: tuple,
     board_tl_coords: tuple,
+    delay: int,
 ):
     wordle_game = Browser(enter_key_coords, board_tl_coords)
-    wordle_game.init_game()
+    wordle_game.init_game(delay)
 
     guess = word_guesser.get_random_word()
     if start_word:
@@ -62,11 +63,11 @@ class Browser:
 
         self.current_row = 0
 
-    def init_game(self):
+    def init_game(self, delay: int):
         util.vlog("Initializing Wordle game...")
         # Sleep to allow user to open Worldle game
         # https://www.powerlanguage.co.uk/wordle/
-        time.sleep(3)
+        time.sleep(delay)
         util.vlog("Sleep complete, continuing program", 2)
 
         self.click(self.board_topleft_coords)

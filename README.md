@@ -1,6 +1,6 @@
 # WordleBot
 
-A bot to play Wordle at https://www.powerlanguage.co.uk/wordle/
+A bot to play Wordle at https://www.nytimes.com/games/wordle/index.html
 
 Currently in development.
 
